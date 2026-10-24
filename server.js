@@ -86,10 +86,13 @@ async function listGeminiModels() {
     .sort((a, b) => version(b) - version(a) || a.includes("preview") - b.includes("preview"));
 }
 
+const TRANSIENT = new Set([500, 502, 503, 504]);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Free-tier Gemini is often "overloaded" (503) or out of quota (429). Try every model, then retry a few times.
 async function callGemini(prompt) {
-  const tried = new Set();
   let failure;
-  const attempt = async (models) => {
+  const attempt = async (models, tried) => {
     for (const model of models) {
       if (tried.has(model) || (blocked.get(model) ?? 0) > Date.now()) continue;
       tried.add(model);
@@ -104,12 +107,18 @@ async function callGemini(prompt) {
       failure = Object.assign(new Error(`Upstream error ${res.status}`), { status: res.status });
       if (res.status === 404) blocked.set(model, Date.now() + 3_600_000);
       else if (res.status === 429) blocked.set(model, Date.now() + 120_000);
-      else throw failure;
+      else if (!TRANSIENT.has(res.status)) throw failure;
     }
     return null;
   };
-  const text = (await attempt(modelOrder())) ?? (failure?.status === 404 ? await attempt(await listGeminiModels()) : null);
-  if (text !== null) return text;
+  for (let pass = 0; pass < 3; pass++) {
+    const tried = new Set();
+    let text = await attempt(modelOrder(), tried);
+    if (text === null && failure?.status === 404) text = await attempt(await listGeminiModels(), tried);
+    if (text !== null) return text;
+    if (!failure || !TRANSIENT.has(failure.status)) break;
+    await sleep(1500 * (pass + 1));
+  }
   throw failure ?? Object.assign(new Error("No Gemini model available"), { status: 429 });
 }
 
