@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan·it – AI event planner</title>
+<meta name="description" content="Plan weddings, birthdays and community events with budgets, timelines, vendor checklists and personalised ideas.">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<div id="splash" aria-hidden="true"><div class="pop">🎉</div><p>Plan·it</p></div>
+<canvas id="petals" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+<a class="skip" href="#plan-form">Skip to planner</a>
+<header class="hero">
+  <div class="floaters" aria-hidden="true"><span>🎈</span><span>🥂</span><span>🎂</span><span>✨</span><span>💐</span><span>🎊</span></div>
+  <h1 id="brand">Plan·it</h1>
+  <p>Tell us about your celebration and get a budget, timeline, vendor checklist and ideas made for you.</p>
+</header>
+<div class="marquee" aria-hidden="true"><div class="track"><span>💍 Weddings</span><span>🎂 Birthdays</span><span>🤝 Community events</span><span>✨ Budgets</span><span>🗓️ Timelines</span><span>✅ Vendor checklists</span><span>💡 Fresh ideas</span><span>💍 Weddings</span><span>🎂 Birthdays</span><span>🤝 Community events</span><span>✨ Budgets</span><span>🗓️ Timelines</span><span>✅ Vendor checklists</span><span>💡 Fresh ideas</span><span>💍 Weddings</span><span>🎂 Birthdays</span><span>🤝 Community events</span><span>✨ Budgets</span><span>🗓️ Timelines</span><span>✅ Vendor checklists</span><span>💡 Fresh ideas</span><span>💍 Weddings</span><span>🎂 Birthdays</span><span>🤝 Community events</span><span>✨ Budgets</span><span>🗓️ Timelines</span><span>✅ Vendor checklists</span><span>💡 Fresh ideas</span></div></div>
+<main>
+  <form id="plan-form">
+    <fieldset class="types">
+      <legend>Event type</legend>
+      <label><input type="radio" name="type" value="wedding" checked><b aria-hidden="true">💍</b><span>Wedding</span></label>
+      <label><input type="radio" name="type" value="birthday"><b aria-hidden="true">🎂</b><span>Birthday</span></label>
+      <label><input type="radio" name="type" value="community"><b aria-hidden="true">🤝</b><span>Community</span></label>
+    </fieldset>
+    <div class="grid">
+      <div class="wide"><label for="who">Who or what are we celebrating?</label><input id="who" maxlength="300" placeholder="Aanya &amp; Rohan, Dad’s 60th, Diwali mela"></div>
+      <div><label for="date">Event date</label><input id="date" type="date"></div>
+      <div><label for="guests">Guests</label><input id="guests" type="number" min="2" max="5000" required placeholder="150"></div>
+      <div><label for="budget">Total budget</label><div class="row"><select id="currency" aria-label="Currency"><option>₹</option><option>$</option><option>€</option><option>£</option></select><input id="budget" type="number" min="1" required placeholder="1500000"></div></div>
+      <div><label for="city">City</label><input id="city" maxlength="300" placeholder="Delhi"></div>
+      <div class="wide"><label for="vibe">Style, theme or vibe</label><input id="vibe" maxlength="300" placeholder="Intimate, pastel, garden, live music"></div>
+      <div class="wide"><label for="notes">Must-haves, dietary needs, constraints</label><textarea id="notes" maxlength="300" placeholder="Vegetarian menu, elderly guests, outdoor only"></textarea></div>
+    </div>
+    <button type="submit" id="go">Create my plan</button>
+    <p id="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <section id="results" tabindex="-1" aria-labelledby="title" hidden>
+    <h2 id="title"></h2>
+    <p id="summary"></p>
+    <p id="mode" class="badge"></p>
+    <ul id="chips" class="chips"></ul>
+    <div role="tablist" aria-label="Plan sections">
+      <button role="tab" id="tab-budget" aria-controls="budget-panel" aria-selected="true">Budget</button>
+      <button role="tab" id="tab-timeline" aria-controls="timeline" aria-selected="false" tabindex="-1">Timeline</button>
+      <button role="tab" id="tab-vendors" aria-controls="vendors" aria-selected="false" tabindex="-1">Vendors</button>
+      <button role="tab" id="tab-ideas" aria-controls="ideas" aria-selected="false" tabindex="-1">Ideas</button>
+    </div>
+    <div id="budget-panel" role="tabpanel" aria-labelledby="tab-budget"></div>
+    <div id="timeline" role="tabpanel" aria-labelledby="tab-timeline" hidden></div>
+    <div id="vendors" role="tabpanel" aria-labelledby="tab-vendors" hidden></div>
+    <div id="ideas" role="tabpanel" aria-labelledby="tab-ideas" hidden></div>
+    <form id="tweak-form">
+      <label for="tweak">Tweak the plan</label>
+      <div class="row"><input id="tweak" maxlength="300" placeholder="Cut the budget 15%, add a mehendi night"><button type="submit" id="update">Update plan</button></div>
+    </form>
+  </section>
+</main>
+<div id="loader" hidden aria-hidden="true"><div class="loader-card"><div class="spinner"></div><p id="loader-text">Planning your event…</p><div class="skeleton"><i></i><i></i><i></i></div></div></div>
+</body>
+</html>

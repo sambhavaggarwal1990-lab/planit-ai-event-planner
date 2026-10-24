@@ -1,0 +1,13 @@
+{
+  "name": "planit-ai-event-planner",
+  "version": "1.0.0",
+  "description": "GenAI planning assistant for weddings, birthdays and community events.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "start:env": "node --env-file=.env server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
