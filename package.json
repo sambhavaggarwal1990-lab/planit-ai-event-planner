@@ -1,16 +1,20 @@
 {
   "name": "planit-ai-event-planner",
   "version": "1.0.0",
-  "description": "GenAI planning assistant for weddings, birthdays and community events.",
+  "description": "GenAI planning assistant for weddings, birthdays and community events (TypeScript, Node 22.18+, no build step).",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "start:env": "node --env-file=.env server.js",
-    "test": "node --test",
-    "test:coverage": "node --test --experimental-test-coverage"
+    "start": "node --disable-warning=ExperimentalWarning server.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test",
+    "test:coverage": "node --disable-warning=ExperimentalWarning --test --experimental-test-coverage",
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.3"
+  }
 }

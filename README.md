@@ -28,7 +28,7 @@ The browser form posts to `POST /api/plan`. The server holds the API key, rate-l
 
 ## Gen AI services used
 
-Google Gemini (Gemini API, free-tier Flash models) generates and revises every plan: budget split, timeline, vendor checklist, personalised ideas and savings tips. The server tries `gemini-3.5-flash` first, then Flash-Lite variants, skipping any model that is out of quota or retired and retrying when Google reports it is overloaded.
+Google Gemini (Gemini API, free-tier Flash models) generates and revises every plan: budget split, timeline, vendor checklist, personalised ideas and savings tips. On the first request the server asks Google which Flash models the key can use and tries the newest first, so it keeps working as Google retires and releases models. It skips a model that is out of quota or retired, and retries when Google reports it is overloaded.
 
 ## Assumptions
 
@@ -48,40 +48,45 @@ Sample input: Wedding, 150 guests, ₹15,00,000, Delhi, "garden, pastel, live mu
 
 ## Quick start
 
-Requires Node.js 18 or newer. There are no dependencies to install.
+Needs Node.js 22.18 or newer (24 recommended, see `.node-version`). The whole project is **TypeScript that runs without a build step**: Node strips the types itself, and the server does the same for the browser files. There are no runtime dependencies.
 
 ```bash
-cp .env.example .env        # then put your free Gemini key in .env
-npm run start:env
+cp .env.example .env     # then put your free Gemini key in .env
+npm start                # reads .env automatically
 ```
 
 Open http://localhost:3000. Without a key the app still works in starter-template mode. Never put a real key in `.env.example`; `.env` is git-ignored.
 
+## Scripts
+
+```bash
+npm start                # run the app
+npm test                 # run the tests (no install needed)
+npm run test:coverage    # tests with a coverage report
+npm install && npm run typecheck   # strict TypeScript check (installs typescript and @types/node)
+```
+
 ## Deploy (free, Render)
 
 1. Push this repo to GitHub, then create a Render **Web Service** from it (Language: Node, Instance Type: Free).
-2. Build Command `npm install`, Start Command `npm start`.
+2. Build Command `npm install`, Start Command `npm start`. Render reads `.node-version` (24) for the Node version.
 3. Add the environment variable `GEMINI_API_KEY` (free key from Google AI Studio) and deploy.
 
 ## Tests
 
-```bash
-npm test                 # run the tests
-npm run test:coverage    # run them with a coverage report
-```
-
-20 tests cover input validation, budget maths, prompt building and sanitising, AI-reply parsing and fallback plans, plus the HTTP server with a mocked Gemini API: static files and headers, path traversal, request validation, rate limiting, caching, model fallback and friendly error mapping. CI runs them with coverage on every push.
+35 tests cover input validation, budget maths, prompt building and sanitising, AI-reply parsing, fallback plans, the UI helpers (formatting, chart maths, saved checklist, API client) and the HTTP server with a mocked Gemini API: static files and headers, TypeScript served as JavaScript, path traversal, request validation, rate limiting, caching, model discovery and fallback, retries and friendly error mapping. Line coverage is about 99%. CI runs the type check and the tests with coverage on Node 22 and 24 for every push.
 
 ## Architecture
 
 ```
-public/planner.js   pure logic (validation, prompt, parsing, sanitising, fallback), shared by browser, server and tests
-public/app.js       UI: form, tabs, rendering, charts, effects, saved checklist progress
-src/app.js          HTTP routes, security headers, static files, caching, error mapping
-src/gemini.js       Gemini client: free-model rotation, retries, model discovery
-src/rateLimit.js    bounded sliding-window rate limiter
-server.js           starts the server
-test/               node:test unit and integration tests
+server.ts           starts the server (loads .env)
+src/app.ts          HTTP routes, security headers, static files, caching, error mapping
+src/gemini.ts       Gemini client: model discovery, free-model rotation, retries
+src/rateLimit.ts    bounded sliding-window rate limiter
+public/planner.ts   pure logic and shared types (validation, prompt, parsing, sanitising, fallback)
+public/app.ts       UI entry point: reads the form, asks for a plan, shows it
+public/js/          small UI modules: api, dom, format (pure helpers), store, render, tabs, effects, motion
+test/               node:test unit and integration tests (TypeScript)
 ```
 
 ## Security
@@ -92,14 +97,15 @@ test/               node:test unit and integration tests
 - Strict Content-Security-Policy plus HSTS, `nosniff`, frame, referrer, permissions and cross-origin headers.
 - Per-visitor rate limiting (uses the real client IP behind Render's proxy) with bounded memory, a 32 KB request cap, a JSON content-type check, a request timeout, a path-traversal guard and generic error messages.
 - Prompt-injection defence: user text is fenced and stripped of angle brackets before it reaches the model.
+- CodeQL scanning and Dependabot updates run on GitHub; see `SECURITY.md` for how to report an issue.
 
 ## Accessibility
 
-Semantic landmarks and labelled controls, a skip link, native radios and checkboxes, ARIA tabs with arrow-key navigation, `aria-live` status messages, focus moved to results, visible focus rings, strong colour contrast, and full `prefers-reduced-motion` support (all animations and effects switch off).
+Semantic landmarks and labelled controls, a skip link, native radios and checkboxes, ARIA tabs with arrow-key, Home and End navigation, `aria-live` status messages, focus moved to results, visible focus rings, strong colour contrast, and a visible "Pause animations" switch (WCAG 2.2.2) plus `prefers-reduced-motion` support, so every decorative animation and effect can be turned off.
 
 ## Efficiency
 
-Zero runtime dependencies, tiny static assets, one AI request per plan, a 90-second upstream timeout, and a 30-minute cache for identical requests so the free Gemini quota lasts longer.
+Zero runtime dependencies, no build step, tiny static assets, one AI request per plan, a 90-second upstream timeout, and a 30-minute cache for identical requests so the free Gemini quota lasts longer.
 
 ## Limitations
 
